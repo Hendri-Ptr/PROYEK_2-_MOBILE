@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../routes/app_routes.dart';
+import '../../../services/api_service.dart';
+import '../../routes/app_routes.dart';  // Ganti dengan path rute Anda
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,23 +11,43 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();  // Ganti dari nameController ke usernameController
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedName = prefs.getString('name') ?? '';
-    final savedPassword = prefs.getString('password') ?? '';
+    setState(() {
+      _isLoading = true;  // Menandakan bahwa proses login sedang berlangsung
+    });
 
-    if (_nameController.text == savedName &&
-        _passwordController.text == savedPassword) {
-      // Login berhasil, navigasi ke MainScreen (pakai bottom nav)
-      Navigator.pushReplacementNamed(context, AppRoutes.main);
-    } else {
-      // Login gagal
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama atau password salah')),
+    try {
+      final response = await ApiService.login(
+        _usernameController.text,  // Gunakan usernameController untuk username
+        _passwordController.text,
       );
+
+      if (response['message'] == 'Login berhasil!') {
+        // Simpan token ke SharedPreferences setelah login berhasil
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('token', response['token']);
+
+        // Navigasi ke MainScreen (pakai bottom nav)
+        Navigator.pushReplacementNamed(context, AppRoutes.main);
+      } else {
+        // Menampilkan pesan kesalahan jika login gagal
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Username atau password salah')),
+        );
+      }
+    } catch (e) {
+      // Menampilkan pesan kesalahan jika terjadi error dalam login
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal login: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;  // Menandakan bahwa proses login telah selesai
+      });
     }
   }
 
@@ -49,11 +70,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Field Nama Pengguna
+                // Field Username (Nama Pengguna diganti menjadi Username)
                 TextField(
-                  controller: _nameController,
+                  controller: _usernameController,  // Gunakan _usernameController
                   decoration: const InputDecoration(
-                    labelText: 'Nama pengguna',
+                    labelText: 'Username',  // Menggunakan Username
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -87,11 +108,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _login,
-                    child: const Text(
-                      'Masuk',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    onPressed: _isLoading ? null : _login,  // Disable tombol saat loading
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Masuk',
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 16),

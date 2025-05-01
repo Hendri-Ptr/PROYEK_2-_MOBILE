@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
+import 'package:flutter/gestures.dart';  // Tambahkan ini untuk TapGestureRecognizer
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../services/api_service.dart';  // Pastikan API service sudah disesuaikan dengan API
+import '../../routes/app_routes.dart';  // Ganti dengan path rute Anda
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,26 +14,81 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-
-  final TapGestureRecognizer _termsRecognizer = TapGestureRecognizer();
-  final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeTerms = false;
+  bool _isLoading = false;
+
+  final TapGestureRecognizer _termsRecognizer = TapGestureRecognizer();
+  final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer();
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _termsRecognizer.dispose();
     _privacyRecognizer.dispose();
     super.dispose();
+  }
+
+  Future<void> _register() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password tidak cocok'),
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final response = await ApiService.register(
+        username,
+        email,
+        name,
+        password,
+      );
+
+      if (response['message'] == 'Pendaftaran berhasil!') {
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('token', response['token']);
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registrasi gagal, coba lagi!'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -55,6 +113,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Field Username
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',  // Menggunakan username untuk login
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Field Nama Lengkap
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -64,6 +133,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Field Email
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -74,6 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Field Password
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -94,6 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Field Konfirmasi Password
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
@@ -114,6 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Checkbox Terms and Conditions
               Row(
                 children: [
                   Checkbox(
@@ -167,32 +240,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Tombol Daftar
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: _agreeTerms
-                      ? () {
-                          final name = _nameController.text.trim();
-                          final email = _emailController.text.trim();
-                          final password = _passwordController.text;
-                          final confirmPassword =
-                              _confirmPasswordController.text;
-
-                          if (password != confirmPassword) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Password tidak cocok'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          // TODO: lanjutkan proses register
-                          print('Register: $name, $email');
-                        }
+                  onPressed: _agreeTerms && !_isLoading
+                      ? _register
                       : null,
-                  child: const Text('Daftar', style: TextStyle(fontSize: 16)),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Daftar', style: TextStyle(fontSize: 16)),
                 ),
               ),
               const SizedBox(height: 24),
