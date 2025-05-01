@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lilik_net/presentation/screens/tagihan_screen.dart';
 import 'home_screen.dart';
 import 'settings_screen.dart';
 import 'paket_screen.dart';
@@ -11,10 +12,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 2; // 2 berarti default di tab Pengaturan
+  int _currentIndex = 3; // 3 berarti default di tab Pengaturan
 
   final List<Widget> _screens = [
     HomeScreen(),
+    TagihanScreen(),
     PaketScreen(),
     SettingsScreen(),
   ];
@@ -33,10 +35,16 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Tagihan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.wifi),
