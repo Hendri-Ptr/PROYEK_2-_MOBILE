@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/paket.dart';
 import '../models/user.dart';  // Pastikan sudah membuat model User
+import '../models/pelanggan.dart';  // Pastikan sudah membuat model Pelanggan
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:8000/api';  // Atau 127.0.0.1 // Gunakan IP lokal atau 10.0.2.2 untuk emulator Android
@@ -96,6 +97,40 @@ class ApiService {
       return User.fromJson(data);  // Mengonversi JSON menjadi objek User
     } else {
       throw Exception('Gagal mengambil profil pengguna');
+    }
+  }
+
+  // Fungsi untuk mendaftar paket pelanggan
+  static Future<bool> registerPelanggan(Pelanggan pelanggan) async {
+    // Mengonversi objek Pelanggan menjadi Map
+    final Map<String, dynamic> pelangganData = pelanggan.toJson();
+
+    try {
+      // Cek apakah token ada di SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/daftar-paket'), // URL API untuk mendaftar paket
+        headers: <String, String>{
+          'Content-Type': 'application/json', // Menggunakan format JSON
+          if (token != null) 'Authorization': 'Bearer $token', // Kirimkan token jika ada
+        },
+        body: jsonEncode(pelangganData), // Mengonversi data menjadi JSON
+      );
+
+      // Memeriksa respons dari server
+      if (response.statusCode == 201) {
+        // Pendaftaran berhasil
+        return true;
+      } else {
+        // Pendaftaran gagal
+        print('Error: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return false;
     }
   }
 }

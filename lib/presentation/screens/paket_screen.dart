@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/paket.dart';
 import '../../../services/api_service.dart';
+import 'daftar_paket_screen.dart';  // Import layar pendaftaran
 
 class PaketScreen extends StatefulWidget {
   const PaketScreen({Key? key}) : super(key: key);
@@ -106,10 +107,15 @@ class _PaketScreenState extends State<PaketScreen> {
                             // Tombol Daftar / Checkout
                             ElevatedButton(
                               onPressed: () {
-                                // Aksi tombol, bisa diubah sesuai kebutuhan
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Anda memilih paket ${paket.nama}'),
+                                // Aksi tombol, pass data ke form pendaftaran
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DaftarPaketScreen(
+                                      paket: paket,
+                                      username: 'User123',  // Username bisa diambil dari sesi login
+                                      namaPelanggan: 'John Doe', // Nama pelanggan bisa diambil dari sesi login
+                                    ),
                                   ),
                                 );
                               },
