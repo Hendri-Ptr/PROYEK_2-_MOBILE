@@ -21,11 +21,13 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _initializeAndNavigate() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    // Set default username dan password jika belum ada
     if (!prefs.containsKey('name') || !prefs.containsKey('password')) {
-      await prefs.setString('name', 'user123');
-      await prefs.setString('password', '123456');
+      await prefs.setString('name', 'user');
+      await prefs.setString('password', '123');
     }
 
+    // Memastikan isLoggedIn sudah di-set, jika belum default ke false
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
     // Delay splash screen
@@ -33,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
+    // Arahkan ke halaman login jika belum login, atau halaman home jika sudah login
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

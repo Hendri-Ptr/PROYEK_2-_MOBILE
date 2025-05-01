@@ -8,7 +8,10 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengaturan',style: TextStyle(fontWeight: FontWeight.bold ),),
+        title: const Text(
+          'Pengaturan',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -63,34 +66,39 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 32),
           const Divider(),
 
-          // List menu
-          _buildMenuItem(context, 'Paket Aktif', Icons.wifi),
-          _buildMenuItem(context, 'Langganan', Icons.subscriptions),
-          _buildMenuItem(context, 'Tagihan', Icons.receipt),
-          _buildMenuItem(context, 'Riwayat Tagihan', Icons.history),
+          // List menu dengan navigator
+          _buildMenuItem(context, 'Paket Aktif', Icons.wifi, AppRoutes.paketAktif),
+          _buildMenuItem(context, 'Langganan', Icons.subscriptions, AppRoutes.langganan),
+          _buildMenuItem(context, 'Tagihan', Icons.receipt, AppRoutes.tagihan),
+          _buildMenuItem(context, 'Riwayat Tagihan', Icons.history, AppRoutes.riwayatTagihan),
+
           const Divider(),
-          _buildMenuItem(context, 'Keluar', Icons.logout, isLogout: true),
+
+          // Logout
+          _buildLogoutItem(context),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, String title, IconData icon, {bool isLogout = false}) {
+  Widget _buildMenuItem(BuildContext context, String title, IconData icon, String routeName) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: () {
-        if (isLogout) {
-          // Logout: hapus data login dan arahkan ke login screen
-          Navigator.pushNamedAndRemoveUntil(
-              context, AppRoutes.login, (route) => false);
-        } else {
-          // Placeholder untuk navigasi menu lainnya
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title diklik')),
-          );
-        }
+        Navigator.pushNamed(context, routeName);
+      },
+    );
+  }
+
+  Widget _buildLogoutItem(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.logout),
+      title: const Text('Keluar'),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: () {
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
       },
     );
   }

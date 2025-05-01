@@ -14,12 +14,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _login() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedName = prefs.getString('name') ?? '';
-    final savedPassword = prefs.getString('password') ?? '';
+    // Hardcoded username dan password
+    const correctUsername = 'user';
+    const correctPassword = '123';
 
-    if (_nameController.text == savedName &&
-        _passwordController.text == savedPassword) {
+    if (_nameController.text == correctUsername &&
+        _passwordController.text == correctPassword) {
       // Login berhasil, navigasi ke MainScreen (pakai bottom nav)
       Navigator.pushReplacementNamed(context, AppRoutes.main);
     } else {
